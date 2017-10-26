@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title> Simple Game </title>
+	<style>
+		* { padding: 0; margin: 0; }
+		canvas { background: #eee; display: block; margin: 0 auto;}
+	</style>
+        <link rel="shortcut icon" href="#">
+</head>
+<body>
+
+<canvas id ="myCanvas" width="300" height="500"></canvas>
+
+<script>
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    
+    // Rectangle Variables
+    var rectangleX = canvas.width/2 - 15;
+    var rectangleY = canvas.height-30;
+    var rightPressed = false;
+    var leftPressed = false;
+   
+    
+    // Border Variables
+    var borderRectX = 5;
+    var borderRectY = 20;
+    var borderDY = 2;
+    var borderLeftPosY = 0;
+    var borderRightPosY = 0;
+    var borderLeftPosX = 0;
+    var borderRightPosX = canvas.width-borderRectX;
+    var borderDY = 0
+    
+    var obstacleLength = 7;
+    var obstacleHeight = 7;
+    
+    var obstacleList = [];
+
+    var gameOver = false;
+    var score = 0;
+    var intervalTime = 1000;
+    var obstacleCount = 1;
+    var myInterval = null;
+    var scoreIncreased = false;
+    
+    
+    function createObstacle() {
+        obstacleY = 0;
+        obstacleX = Math.floor((Math.random() * (canvas.width - (obstacleLength + borderRectX)) + 1));
+        obstacleX +=borderRectX;
+        ctx.beginPath();
+        ctx.rect(obstacleX, obstacleY, obstacleLength, obstacleHeight);
+        ctx.fillStyle = "#8b0000";
+        ctx.fill();
+        ctx.closePath(); 
+        
+        obstacleList.push([obstacleX, obstacleY]);
+    }
+    
+    function moveObstacle (pos) {
+        x = obstacleList [pos][0];
+        y = obstacleList [pos][1];
+        y+=7;
+        ctx.beginPath();
+        ctx.rect(x, y, obstacleLength, obstacleHeight);
+        ctx.fillStyle = "#8b0000";
+        ctx.fill();
+        ctx.closePath(); 
+        
+        obstacleList[pos] = [x,y];
+        
+       
+            if (y >= rectangleY && ((x >= rectangleX && x + obstacleLength <= rectangleX + 30))){
+                gameOver = true;
+                alert("GAME OVER our score is: " + score);
+                document.location.reload();
+                return;
+            }
+       
+        
+        if (y > canvas.height + obstacleHeight){
+           obstacleList.splice(pos, 1);
+        }
+        
+         
+    }
+
+    function createBorders () {      
+        for (var i = 0; i < 25; i++){
+                ctx.beginPath();
+                ctx.rect(borderLeftPosX, borderLeftPosY + borderDY, borderRectX, borderRectY);
+                ctx.fillStyle = "#0024DD";
+                ctx.fill();
+                ctx.closePath();
+                borderLeftPosY += 24
+         }
+         for (var i = 0; i < 25; i++){
+                ctx.beginPath();
+                ctx.rect(borderRightPosX, borderRightPosY + borderDY, borderRectX, borderRectY);
+                ctx.fillStyle = "#0024DD";
+                ctx.fill();
+                ctx.closePath();
+                borderRightPosY += 24
+         }
+                
+        borderLeftPosY = 0;
+        borderRightPosY = 0;
+        if (borderDY >= 20){
+                borderDY = 0;
+        }
+     
+    }
+   
+    function drawRectangle() {
+        ctx.clearRect(rectangleX, rectangleY, rectangleX + 30, rectangleY + 30);
+        ctx.beginPath();
+        ctx.rect (rectangleX, rectangleY, 30, 30);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    }
+    
+    
+    function draw() {
+        document.getElementById("scoreWindow").innerHTML =  "Score: "  + window.score;
+        
+        
+        if (gameOver== false){
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        drawRectangle();
+        createBorders();
+        for (i = 0; i < obstacleList.length; i++){
+            moveObstacle (i);
+        }
+        
+        
+        if(rightPressed && rectangleX < (canvas.width - borderRectX) - 30) {
+            rectangleX += 7;
+        }
+        else if(leftPressed && rectangleX > borderRectX) {
+            rectangleX -= 7;
+        }
+        borderDY += 5;        
+        
+        score +=1;
+        if (score % 500 == 0){
+            intervalTime = intervalTime / 1.1;
+            clearInterval (myInterval);
+        }
+    }
+    }
+    
+    function keyDownHandler(e) {
+        if(e.keyCode == 39) {
+            rightPressed = true;
+        }
+        else if(e.keyCode == 37) {
+            leftPressed = true;
+        }
+    }
+    
+    
+
+    function keyUpHandler(e) {
+        if(e.keyCode == 39) {
+            rightPressed = false;
+        }
+        else if(e.keyCode == 37) {
+            leftPressed = false;
+        }
+        
+    }
+    
+    function createObstacles (){
+        myInterval = setInterval (createObstacle, intervalTime);
+    }
+    
+    createObstacles ();
+ 
+    setInterval (createObstacles, 5000)
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+    setInterval (draw, 20);
+    
+</script>
+
+<p id ="scoreWindow"> </p>
+
+</body>
+</html>
+	
