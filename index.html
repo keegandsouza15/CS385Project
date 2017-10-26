@@ -14,6 +14,7 @@
 <canvas id ="myCanvas" width="300" height="500"></canvas>
 
 <script>
+    // The canvas
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
     
@@ -22,7 +23,6 @@
     var rectangleY = canvas.height-30;
     var rightPressed = false;
     var leftPressed = false;
-   
     
     // Border Variables
     var borderRectX = 5;
@@ -34,19 +34,18 @@
     var borderRightPosX = canvas.width-borderRectX;
     var borderDY = 0
     
+    // Obstacle Variables
     var obstacleLength = 7;
     var obstacleHeight = 7;
-    
     var obstacleList = [];
-
+    
+    // Game Variables
     var gameOver = false;
     var score = 0;
     var intervalTime = 1000;
-    var obstacleCount = 1;
     var myInterval = null;
-    var scoreIncreased = false;
     
-    
+    // Create an obstacles.
     function createObstacle() {
         obstacleY = 0;
         obstacleX = Math.floor((Math.random() * (canvas.width - (obstacleLength + borderRectX)) + 1));
@@ -55,12 +54,14 @@
         ctx.rect(obstacleX, obstacleY, obstacleLength, obstacleHeight);
         ctx.fillStyle = "#8b0000";
         ctx.fill();
-        ctx.closePath(); 
-        
+        ctx.closePath();
+        // Addes the obstacle's cordinates to a list.
         obstacleList.push([obstacleX, obstacleY]);
     }
     
+    // Moves a specific Obstacle
     function moveObstacle (pos) {
+        // Gets the obstacles cordinates from the list.
         x = obstacleList [pos][0];
         y = obstacleList [pos][1];
         y+=7;
@@ -69,26 +70,24 @@
         ctx.fillStyle = "#8b0000";
         ctx.fill();
         ctx.closePath(); 
-        
+        // Updates the obstacles position.
         obstacleList[pos] = [x,y];
-        
-       
-            if (y >= rectangleY && ((x >= rectangleX && x + obstacleLength <= rectangleX + 30))){
+        // Checks if the user has hit the obstacle.
+        if (y >= rectangleY && ((x >= rectangleX && x + obstacleLength <= rectangleX + 30))){
                 gameOver = true;
                 alert("GAME OVER our score is: " + score);
                 document.location.reload();
                 return;
             }
-       
-        
+        // If the obstacle has moven of screen delete it from the list.    
         if (y > canvas.height + obstacleHeight){
            obstacleList.splice(pos, 1);
         }
-        
-         
     }
-
-    function createBorders () {      
+    
+    // Creates moving Borders.
+    function createBorders () {
+        // Left Borders
         for (var i = 0; i < 25; i++){
                 ctx.beginPath();
                 ctx.rect(borderLeftPosX, borderLeftPosY + borderDY, borderRectX, borderRectY);
@@ -97,6 +96,7 @@
                 ctx.closePath();
                 borderLeftPosY += 24
          }
+         // Right Borders
          for (var i = 0; i < 25; i++){
                 ctx.beginPath();
                 ctx.rect(borderRightPosX, borderRightPosY + borderDY, borderRectX, borderRectY);
@@ -105,7 +105,8 @@
                 ctx.closePath();
                 borderRightPosY += 24
          }
-                
+        
+        // Sets the Borders y cordinate to 0. 
         borderLeftPosY = 0;
         borderRightPosY = 0;
         if (borderDY >= 20){
@@ -114,6 +115,7 @@
      
     }
    
+    // Draws the rectangle that the player can move
     function drawRectangle() {
         ctx.clearRect(rectangleX, rectangleY, rectangleX + 30, rectangleY + 30);
         ctx.beginPath();
@@ -123,36 +125,39 @@
         ctx.closePath();
     }
     
-    
+    // Draws all the elements.
     function draw() {
+        // Updates the score in the html.
         document.getElementById("scoreWindow").innerHTML =  "Score: "  + window.score;
-        
-        
+        // Check if the game is not over and draws all the elements.
         if (gameOver== false){
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        drawRectangle();
-        createBorders();
-        for (i = 0; i < obstacleList.length; i++){
-            moveObstacle (i);
-        }
-        
-        
-        if(rightPressed && rectangleX < (canvas.width - borderRectX) - 30) {
-            rectangleX += 7;
-        }
-        else if(leftPressed && rectangleX > borderRectX) {
-            rectangleX -= 7;
-        }
-        borderDY += 5;        
-        
-        score +=1;
-        if (score % 500 == 0){
-            intervalTime = intervalTime / 1.1;
-            clearInterval (myInterval);
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            drawRectangle();
+            createBorders();
+            // Moves the Obstacles in the obstacle list.
+            for (i = 0; i < obstacleList.length; i++){
+                moveObstacle (i);
+            }
+            
+            // Moves the rectangle left or right depending on which button is pressed.
+            if(rightPressed && rectangleX < (canvas.width - borderRectX) - 30) {
+                rectangleX += 7;
+            }
+            else if(leftPressed && rectangleX > borderRectX) {
+                rectangleX -= 7;
+            }
+            // Increments the borderMovement position.
+            borderDY += 5;        
+            // Add to the score.
+            score +=1;
+            // Increases the difficulty by making the obstacles appear quicker
+            if (score % 500 == 0){
+                intervalTime = intervalTime / 1.1;
+                clearInterval (myInterval);
+            }
         }
     }
-    }
-    
+    // Handles Key Down Events
     function keyDownHandler(e) {
         if(e.keyCode == 39) {
             rightPressed = true;
@@ -161,9 +166,7 @@
             leftPressed = true;
         }
     }
-    
-    
-
+    // Handles Key Up Events
     function keyUpHandler(e) {
         if(e.keyCode == 39) {
             rightPressed = false;
@@ -174,15 +177,18 @@
         
     }
     
+    // Creates the obstacles. 
     function createObstacles (){
         myInterval = setInterval (createObstacle, intervalTime);
     }
-    
+    // Creates the intial obstacles.
     createObstacles ();
- 
+    // Creates more obstacles every 5 seconds.
     setInterval (createObstacles, 5000)
+    // Adds Key up and down intervals.
     document.addEventListener("keydown", keyDownHandler, false);
     document.addEventListener("keyup", keyUpHandler, false);
+    // Refreshes and draws the game.
     setInterval (draw, 20);
     
 </script>
