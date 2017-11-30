@@ -4,6 +4,21 @@
 	<meta charset="utf-8" />
 	<title> Block Doger</title>
 	<style>
+		body {
+			background-color: lightblue;
+		}
+		
+		.element {
+			display: inline-block;
+			text-align: center;
+		}
+		.score {
+			color: red;
+			text-align: center;
+		}
+
+		
+		
 		* { padding: 0; margin: 0; }
 		canvas { background: #eee; display: block; margin: 0 auto;}
 	</style>
@@ -11,17 +26,16 @@
 </head>
 <body>
 
-
-
-
-<button onclick="refreshHighScoreData()">Testing</button>
-<table id="HighScoreUsers">
+<table id="HighScoreUsers" class="element">
 	<caption>World High Score Users</caption>
 </table>	
-<canvas id ="myCanvas" width="300" height="500"></canvas>
+<canvas class="element"  id ="myCanvas" width="300" height="500">
+
+
+</canvas>
 
 <script>
-
+   
     
 	
 
@@ -86,7 +100,7 @@
         // Checks if the user has hit the obstacle.
         if (y >= rectangleY && ((x >= rectangleX && x + obstacleLength <= rectangleX + 30))){
                 gameOver = true;
-		var box = prompt("Please enter a username to save your score");
+		//var box = prompt("Please enter a username to save your score");
 		if (box != null){
 			loadXMLDoc_PUSHTOHIGHSCOREDATABASE(box, score)
 		}
@@ -207,19 +221,15 @@
     setInterval (draw, 20);
     
 
-    function refreshHighScoreData(){
-
-	parseData();
-    	populateData();
+    function refreshHighScoreData(data){
+	var objs = parseData(data);
+    	populateData(objs);
     }
 
-   function populateData(){
-	console.log(objs);
-	objs = objs.sort(score_comparator);
-	console.log(objs);
+   function populateData(objs){
+	objs.sort(score_comparator);
 	var highScoreTable = document.getElementById("HighScoreUsers");
 	highScoreTable.innerHTML = "";
-
 	for (var i = 9; i >= 0; i--){
 		
 		var row1 = highScoreTable.insertRow(0);
@@ -237,25 +247,15 @@
    }
 
  function score_comparator(a,b) {
- 	 if (parseInt(a[1]) < parseInt(b[1])){
-		return true;
-	}
-	return false;
+	return b[1] - a[1];
  }
 
 
-   function parseData(){
-	var data = loadXMLDoc_GETHIGHSCORE();
-	console.log(data.length);
+   function parseData(data){
 
-
-	while(usernames.length > 0) {
-   		 usernames.pop();
-	}
 	
-	while(scores.length > 0) {
-   		 scores.pop();
-	}
+   	var objs = [];
+	
 	while (objs.length > 0){
 		objs.pop();
 	}
@@ -272,7 +272,6 @@
 			username += data[j];
 			j++;
 		}
-		usernames.push(username);
 		obj.push(username);
 		
 		var score = "";
@@ -284,27 +283,48 @@
 			score += data[j];
 			j++;
 	}
-		scores.push(score);
 		obj.push(score);
 		
 		objs.push (obj);
 		j++;
-	
-        }
+	}
+        return objs;
    }
 	
-   var objs = [];
 
-   var usernames = [];
-   var scores = [];
+
 
    function loadXMLDoc_GETHIGHSCORE(){
         var xmlHttp = new XMLHttpRequest ();
-        xmlHttp.open ( "GET", "http://130.211.186.1/HighScores/Get", false);
+	xmlHttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200){
+			responseText =  xmlHttp.responseText;
+			refreshHighScoreData(responseText);
+		}
+	};
+        xmlHttp.open ( "GET", "http://130.211.186.1/HighScores/Get", true);
         xmlHttp.setRequestHeader('Content-Type', 'application/json');
         xmlHttp.send();
-        return xmlHttp.responseText;
    }
+	
+  function loadXMLDoc_GETHIGHSCOREPOSITION (currentScore){
+	var xmlHttp = new XMLHttpRequest ();
+
+	var data = JSON.stringify({"score": currentScore});
+	xmlHttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200){
+			if (xmlHttp.responseText == "0"){
+				document.getElementById("highScorePosition").innerHTML =  "Leader";
+			}else{
+				document.getElementById("highScorePosition").innerHTML =  xmlHttp.responseText;
+			}
+		}
+	}
+	xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/GetPosition", true);
+	xmlHttp.setRequestHeader('Content-Type', 'application/json');
+	console.log(data);
+	xmlHttp.send(data);
+ }	
 	
 
   function loadXMLDoc_PUSHTOHIGHSCOREDATABASE(username, score){
@@ -316,13 +336,14 @@
         return xmlHttp.responseText;
    }
 
-
-
+  setInterval (function () {loadXMLDoc_GETHIGHSCOREPOSITION (score);}, 1000);
+  loadXMLDoc_GETHIGHSCORE();
+  setInterval(loadXMLDoc_GETHIGHSCORE, 5000);
 
 </script>
 
-<p id ="scoreWindow"> 
-
+<h1 class=score  id ="scoreWindow"> 
+<h6 id="highScorePosition">Your position according to the high-score leader boards"</h6>
 
 
 
