@@ -17,6 +17,13 @@ app = Flask(__name__)
 def test():
 	return 'hello there'
 
+@app.route('/CurrentUsers/Get', methods = ['GET'])
+def getCurrentUsers ():
+	r = ''
+	rows = session.execute('select * from currentUsers;')
+	for row in rows:
+		r += str(row)
+	return r
 @app.route('/CurrentUsers/Add', methods = ['POST'])
 def addCurrentUser ():
 	username = request.json['username']
@@ -46,6 +53,13 @@ def getCurrentPosition ():
 		count += 1
 	return str(count)
 
+@app.route('/HighScores/Get', methods = ['GET'])
+def getHighScoreUsers ():
+	r = ''
+	rows = session.execute('select * from highScores;')
+	for row in rows:
+		r += str(row)
+	return r
 @app.route('/HighScores/Add', methods = ['POST'])
 def addHighScoreUser ():
 	username = request.json['username']
