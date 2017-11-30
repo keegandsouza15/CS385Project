@@ -67,12 +67,13 @@ def addHighScoreUser ():
 	session.execute('INSERT INTO highScores (highScores_username, highScores_score) VALUES (%s, %s)', (username, score))
 	return str(request.json)
 
-@app.route('/HighScores/Update', methods = ['POST'])
-def updateHighScoreUser ():
+@app.route('/HighScores/Find', methods = ['POST'])
+def findHighScoreUser ():
 	username = request.json['username']
-	score = request.json['score']
-	session.execute('UPDATE highScores SET highScores_score=%s WHERE highScores_username=%s', (score, username))
-	return str(request.json)
+	rows = session.execute('SELECT * FROM highScores WHERE highscores_username=%s', (str(username)))
+	if not rows:
+	    	return 'False'
+	return 'True'
 
 @app.route('/HighScores/GetPosition', methods =['POST'])
 def getHighScorePosition ():
