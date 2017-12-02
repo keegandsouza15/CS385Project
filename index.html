@@ -102,10 +102,13 @@
                 gameOver = true;
 		var box = prompt("Please enter a username to save your score");
 		if (box != null){
-			loadXMLDoc_PUSHTOHIGHSCOREDATABASE(box, score)
+			console.log("Called");
+			while (loadXMLDoc_FINDUSERNAME(box) == false){
+				var box = prompt("That username is already exits or is invalid");
+			}
+			loadXMLDoc_PUSHTOHIGHSCOREDATABASE(box, score);
 		}
-                //alert("GAME OVER our score is: " + score);
-                document.location.reload();
+              //  document.location.reload();
                 return;
             }
         // If the obstacle has moven of screen delete it from the list.    
@@ -227,7 +230,6 @@
     }
 
    function populateData(objs){
-	objs.sort(score_comparator);
 	var highScoreTable = document.getElementById("HighScoreUsers");
 	highScoreTable.innerHTML = "";
 	for (var i = 9; i >= 0; i--){
@@ -239,57 +241,27 @@
 		
 		// Add some text to the new cells:
 		if (objs[i] != null){
-			cell1.innerHTML = objs[i][0];
-			cell2.innerHTML = objs[i][1];
+			cell1.innerHTML = objs[i].username;
+			cell2.innerHTML = objs[i].score;
 		}
 	}
 
    }
 
- function score_comparator(a,b) {
-	return b[1] - a[1];
- }
+	
 
 
    function parseData(data){
+	var json = JSON.parse(data);
+	var jsonArray = json["data"];
+	
 
-	
-   	var objs = [];
-	
-	while (objs.length > 0){
-		objs.pop();
-	}
-	
-	var j = 0;
-	while (j < data.length){
-		var obj = [];
-		var username = "";
-		while (data[j] != "="){
-			j++;
-		}
-		j+=3;
-		while (data [j] != "'"){
-			username += data[j];
-			j++;
-		}
-		obj.push(username);
-		
-		var score = "";
-		while (data [j] != "="){
-			j++;
-		}
-		j++;
-		while(data [j] !=")"){
-			score += data[j];
-			j++;
-	}
-		obj.push(score);
-		
-		objs.push (obj);
-		j++;
-	}
-        return objs;
+	jsonArray.sort(function(a, b) {
+    		return parseInt(b.score) - parseInt(a.score);
+	})
+	return jsonArray;
    }
+	
 	
 
 
@@ -298,7 +270,7 @@
         var xmlHttp = new XMLHttpRequest ();
 	xmlHttp.onreadystatechange = function () {
 		if (this.readyState == 4 && this.status == 200){
-			responseText =  xmlHttp.responseText;
+			var responseText =  xmlHttp.responseText;
 			refreshHighScoreData(responseText);
 		}
 	};
@@ -326,11 +298,29 @@
 	xmlHttp.send(data);
  }	
 	
+ function loadXMLDoc_FINDUSERNAME (username){
+	var xmlHttp = new XMLHttpRequest ();
+
+	var data = JSON.stringify({"username": username});
+	xmlHttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200){
+			console.log("called");
+			if (xmlHttp.responseText == "True"){
+				return true;
+			}
+			return false;
+		}
+	}
+	xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/Find", true);
+	xmlHttp.setRequestHeader('Content-Type', 'application/json');
+	xmlHttp.send(data);
+ }	
+
 
   function loadXMLDoc_PUSHTOHIGHSCOREDATABASE(username, score){
 	var data = JSON.stringify({"username": username, "score": score});
         var xmlHttp = new XMLHttpRequest ();
-        xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/Update", false);
+        xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/Add", false);
         xmlHttp.setRequestHeader('Content-Type', 'application/json');
         xmlHttp.send(data);
         return xmlHttp.responseText;
