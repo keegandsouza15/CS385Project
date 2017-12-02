@@ -6,34 +6,173 @@
 	<style>
 		body {
 			background-color: lightblue;
+
+		}
+		.position{
+			color: chocolate ;
+		}
+		.title{
+			color : purple;
+			text-align:center;
+			display:block;
+		}
+		.table_header{
+			color: indigo;
 		}
 		
-		.element {
-			display: inline-block;
-			text-align: center;
-		}
 		.score {
 			color: red;
-			text-align: center;
+			text-align:center;
+			display:block;
+			
+		}
+		.table {
+			margin: 0 auto;
+		}
+		
+
+		#inner {
+			margin: 0 auto;
+			display: inline-block;
+			vertical-align:middle;
+			padding-left:50px;
+			padding-right:50px;
+
 		}
 
+		#outer {
+			text-align: center;
+			width: 100%;
+		}
 		
-		
-		* { padding: 0; margin: 0; }
-		canvas { background: #eee; display: block; margin: 0 auto;}
+		canvas { 
+			background: #eee;
+		}
 	</style>
         <link rel="shortcut icon" href="#">
 </head>
 <body>
+	<h1 class="title"> Block Doger</h1>
+	<div id="outer">
+		<div id="inner">
+			<h3 class=table_header>Current Users Score</h3>
+			<table id="CurrentUsers" class="table">
+				<tr>
+					<th>Username</th>
+					<th>Score</th>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				
+			</table>
+			<h5>Your position according to the current-user leader boards</h6>
+			<h3 class=position id"highScorePosition">Last</h3>
+		</div>
+		 <div id="inner">
+			<canvas class="table" id ="myCanvas" width="300" height="500"></canvas>
+		</div>
+		<div id="inner">
+			<h3 class="table_header">High Scores</h3>
+			<table id="HighScoreUsers" class="table">
+				<tr>
+					<th>Username</th>
+					<th>Score</th>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
+				<tr>
+					<td>--------</td>
+					<td>--------</td>
+				</tr>
 
-<table id="HighScoreUsers" class="element">
-	<caption>World High Score Users</caption>
-</table>	
-<canvas class="element"  id ="myCanvas" width="300" height="500">
 
 
-</canvas>
-
+			</table>
+			<h5>Your position according to the high-score leader boards</h6>
+			<h3 class=position id="highScorePosition">Last</h3>
+		</div>
+	</div>
+	<h1 class=score  id ="scoreWindow"> 
 <script>
    
     
@@ -332,8 +471,6 @@
 
 </script>
 
-<h1 class=score  id ="scoreWindow"> 
-<h6 id="highScorePosition">Your position according to the high-score leader boards"</h6>
 
 
 
