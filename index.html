@@ -35,8 +35,8 @@
 			margin: 0 auto;
 			display: inline-block;
 			vertical-align:middle;
-			padding-left:50px;
-			padding-right:50px;
+			padding-left:0px;
+			padding-right:0px;
 
 		}
 
@@ -176,6 +176,7 @@
 <script>
    
     
+    var username = askforUsername();
 	
 
     // The canvas
@@ -239,13 +240,8 @@
         // Checks if the user has hit the obstacle.
         if (y >= rectangleY && ((x >= rectangleX && x + obstacleLength <= rectangleX + 30))){
                 gameOver = true;
-		var box = prompt("Please enter a username to save your score");
-		if (box != null){
-			console.log("Called");
-			while (loadXMLDoc_FINDUSERNAME(box) == false){
-				var box = prompt("That username is already exits or is invalid");
-			}
-			loadXMLDoc_PUSHTOHIGHSCOREDATABASE(box, score);
+		if (username != null){
+			loadXMLDoc_PUSHTOHIGHSCOREDATABASE(username, score);
 		}
               //  document.location.reload();
                 return;
@@ -362,6 +358,16 @@
     // Refreshes and draws the game.
     setInterval (draw, 20);
     
+    function askforUsername(){
+    	name = prompt("Please enter your username!");
+	var taken = loadXMLDoc_FINDUSERNAME ( name);
+     	while (taken == name || taken == ''){
+		name = prompt("That name is taken already, or invalid please try another");	
+		taken = loadXMLDoc_FINDUSERNAME ( name);
+	}
+	return name;
+    }
+
 
     function refreshHighScoreData(data){
 	var objs = parseData(data);
@@ -371,6 +377,9 @@
    function populateData(objs){
 	var highScoreTable = document.getElementById("HighScoreUsers");
 	highScoreTable.innerHTML = "";
+
+
+
 	for (var i = 9; i >= 0; i--){
 		
 		var row1 = highScoreTable.insertRow(0);
@@ -433,26 +442,16 @@
 	}
 	xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/GetPosition", true);
 	xmlHttp.setRequestHeader('Content-Type', 'application/json');
-	console.log(data);
 	xmlHttp.send(data);
  }	
 	
  function loadXMLDoc_FINDUSERNAME (username){
 	var xmlHttp = new XMLHttpRequest ();
-
 	var data = JSON.stringify({"username": username});
-	xmlHttp.onreadystatechange = function () {
-		if (this.readyState == 4 && this.status == 200){
-			console.log("called");
-			if (xmlHttp.responseText == "True"){
-				return true;
-			}
-			return false;
-		}
-	}
-	xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/Find", true);
+	xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/Find", false);
 	xmlHttp.setRequestHeader('Content-Type', 'application/json');
 	xmlHttp.send(data);
+	return xmlHttp.responseText;
  }	
 
 
