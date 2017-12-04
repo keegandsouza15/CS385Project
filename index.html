@@ -175,6 +175,9 @@
 	<h1 class=score  id ="scoreWindow"> 
 <script>
    
+   document.cookie 
+
+
     
     var username = askforUsername();
 	
@@ -240,12 +243,13 @@
         // Checks if the user has hit the obstacle.
         if (y >= rectangleY && ((x >= rectangleX && x + obstacleLength <= rectangleX + 30))){
                 gameOver = true;
-		if (username != null){
-			loadXMLDoc_PUSHTOHIGHSCOREDATABASE(username, score);
-		}
-              //  document.location.reload();
+	//	if (username != null){
+	//		loadXMLDoc_PUSHTOHIGHSCOREDATABASE(username, score);
+	//	}
+		console.log("called")
+                document.location.reload();
                 return;
-            }
+        }
         // If the obstacle has moven of screen delete it from the list.    
         if (y > canvas.height + obstacleHeight){
            obstacleList.splice(pos, 1);
@@ -358,23 +362,50 @@
     // Refreshes and draws the game.
     setInterval (draw, 20);
     
+
+	function getCookie(cname) {
+	    var name = cname + "=";
+	    var decodedCookie = decodeURIComponent(document.cookie);
+	    var ca = decodedCookie.split(';');
+	    for(var i = 0; i <ca.length; i++) {
+		var c = ca[i];
+		while (c.charAt(0) == ' ') {
+		    c = c.substring(1);
+		}
+		if (c.indexOf(name) == 0) {
+		    return c.substring(name.length, c.length);
+		}
+	    }
+	    return "";
+	}
+
+
     function askforUsername(){
-    	name = prompt("Please enter your username!");
-	var taken = loadXMLDoc_FINDUSERNAME ( name);
-     	while (taken == name || taken == ''){
-		name = prompt("That name is taken already, or invalid please try another");	
-		taken = loadXMLDoc_FINDUSERNAME ( name);
+    	var name = getCookie ("username");
+	if (name == ""){
+		name = prompt("Please enter your username!");
+		document.cookie = "username="+name;
+		//var taken = loadXMLDoc_FINDUSERNAME ( name);
+     		//while (taken == name || taken == ''){
+		//name = prompt("That name is taken already, or invalid please try another");	
+		//taken = loadXMLDoc_FINDUSERNAME ( name);
 	}
 	return name;
+    }
+
+    function refreshCurrentScoreData (data){
+	var objs = parseData (data);
+	populateCurrentScoreData (objs);
+
     }
 
 
     function refreshHighScoreData(data){
 	var objs = parseData(data);
-    	populateData(objs);
+    	populateHighScoreData(objs);
     }
 
-   function populateData(objs){
+   function populateHighScoreData(objs){
 	var highScoreTable = document.getElementById("HighScoreUsers");
 	highScoreTable.innerHTML = "";
 
@@ -397,6 +428,27 @@
    }
 
 	
+   function populateCurrentScoreData(objs){
+	var highScoreTable = document.getElementById("CurrentUsers");
+	highScoreTable.innerHTML = "";
+
+
+
+	for (var i = 9; i >= 0; i--){
+		
+		var row1 = highScoreTable.insertRow(0);
+		var cell1 = row1.insertCell(0);
+		var cell2 = row1.insertCell(1);
+
+		
+		// Add some text to the new cells:
+		if (objs[i] != null){
+			cell1.innerHTML = objs[i].username;
+			cell2.innerHTML = objs[i].score;
+		}
+	}
+
+   }
 
 
    function parseData(data){
@@ -411,6 +463,19 @@
    }
 	
 	
+   function loadXMLDoc_GETCURRENTSCORE(){
+        var xmlHttp = new XMLHttpRequest ();
+	xmlHttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200){
+			var responseText =  xmlHttp.responseText;
+			console.log(responseText);
+			refreshCurrentScoreData(responseText);
+		}
+	};
+        xmlHttp.open ( "GET", "http://130.211.186.1/CurrentUsers/Get", true);
+        xmlHttp.setRequestHeader('Content-Type', 'application/json');
+        xmlHttp.send();
+   }
 
 
 
@@ -464,7 +529,7 @@
         return xmlHttp.responseText;
    }
 
-  setInterval (function () {loadXMLDoc_GETHIGHSCOREPOSITION (score);}, 1000);
+  setInterval (function () {loadXMLDoc_GETHIGHSCOREPOSITION (score);}, 2000);
   loadXMLDoc_GETHIGHSCORE();
   setInterval(loadXMLDoc_GETHIGHSCORE, 5000);
 
