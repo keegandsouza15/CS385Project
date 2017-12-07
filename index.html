@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 	<meta charset="utf-8" />
 	<title> Block Doger</title>
 	<style>
@@ -108,7 +109,7 @@
 				
 			</table>
 			<h5>Your position according to the current-user leader boards</h6>
-			<h3 class=position id"highScorePosition">Last</h3>
+			<h3 class=position id="current">Last</h3>
 		</div>
 		 <div id="inner">
 			<canvas class="table" id ="myCanvas" width="300" height="500"></canvas>
@@ -172,11 +173,20 @@
 			<h3 class=position id="highScorePosition">Last</h3>
 		</div>
 	</div>
-	<h1 class=score  id ="scoreWindow"> 
+	<h1 class=score  id ="scoreWindow">
+	<h1 class=score  id ="Username"> 
 <script>
    
-    
+
     var username = askforUsername();
+
+    function askforUsername(){
+		name = prompt("Please enter your username!");
+    	document.getElementById("Username").innerHTML =  name;
+	return name;
+    }
+   
+
 	
 
     // The canvas
@@ -242,10 +252,11 @@
                 gameOver = true;
 		if (username != null){
 			loadXMLDoc_PUSHTOHIGHSCOREDATABASE(username, score);
+			loadxmldoc_DELETECURRENTUSER(username);
 		}
-              //  document.location.reload();
+                document.location.reload();
                 return;
-            }
+        }
         // If the obstacle has moven of screen delete it from the list.    
         if (y > canvas.height + obstacleHeight){
            obstacleList.splice(pos, 1);
@@ -358,23 +369,39 @@
     // Refreshes and draws the game.
     setInterval (draw, 20);
     
-    function askforUsername(){
-    	name = prompt("Please enter your username!");
-	var taken = loadXMLDoc_FINDUSERNAME ( name);
-     	while (taken == name || taken == ''){
-		name = prompt("That name is taken already, or invalid please try another");	
-		taken = loadXMLDoc_FINDUSERNAME ( name);
+
+	function getCookie(cname) {
+	    var name = cname + "=";
+	    var decodedCookie = decodeURIComponent(document.cookie);
+	    var ca = decodedCookie.split(';');
+	    for(var i = 0; i <ca.length; i++) {
+		var c = ca[i];
+		while (c.charAt(0) == ' ') {
+		    c = c.substring(1);
+		}
+		if (c.indexOf(name) == 0) {
+		    return c.substring(name.length, c.length);
+		}
+	    }
+	    return "";
 	}
-	return name;
+
+
+
+
+    function refreshCurrentScoreData (data){
+	var objs = parseData (data);
+	populateCurrentScoreData (objs);
+
     }
 
 
     function refreshHighScoreData(data){
 	var objs = parseData(data);
-    	populateData(objs);
+    	populateHighScoreData(objs);
     }
 
-   function populateData(objs){
+   function populateHighScoreData(objs){
 	var highScoreTable = document.getElementById("HighScoreUsers");
 	highScoreTable.innerHTML = "";
 
@@ -397,6 +424,27 @@
    }
 
 	
+   function populateCurrentScoreData(objs){
+	var highScoreTable = document.getElementById("CurrentUsers");
+	highScoreTable.innerHTML = "";
+
+
+
+	for (var i = 9; i >= 0; i--){
+		
+		var row1 = highScoreTable.insertRow(0);
+		var cell1 = row1.insertCell(0);
+		var cell2 = row1.insertCell(1);
+
+		
+		// Add some text to the new cells:
+		if (objs[i] != null){
+			cell1.innerHTML = objs[i].username;
+			cell2.innerHTML = objs[i].score;
+		}
+	}
+
+   }
 
 
    function parseData(data){
@@ -411,6 +459,18 @@
    }
 	
 	
+   function loadXMLDoc_GETCURRENTSCORE(){
+        var xmlHttp = new XMLHttpRequest ();
+	xmlHttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200){
+			var responseText =  xmlHttp.responseText;
+			refreshCurrentScoreData(responseText);
+		}
+	};
+        xmlHttp.open ( "GET", "http://130.211.186.1/CurrentUsers/Get", true);
+        xmlHttp.setRequestHeader('Content-Type', 'application/json');
+        xmlHttp.send();
+   }
 
 
 
@@ -433,40 +493,80 @@
 	var data = JSON.stringify({"score": currentScore});
 	xmlHttp.onreadystatechange = function () {
 		if (this.readyState == 4 && this.status == 200){
-			if (xmlHttp.responseText == "0"){
-				document.getElementById("highScorePosition").innerHTML =  "Leader";
-			}else{
-				document.getElementById("highScorePosition").innerHTML =  xmlHttp.responseText;
-			}
+			document.getElementById("highScorePosition").innerHTML =  xmlHttp.responseText + 'st'
 		}
 	}
 	xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/GetPosition", true);
 	xmlHttp.setRequestHeader('Content-Type', 'application/json');
 	xmlHttp.send(data);
  }	
-	
- function loadXMLDoc_FINDUSERNAME (username){
+  function loadXMLDoc_GETCURRENTSCOREPOSITION (currentScore){
 	var xmlHttp = new XMLHttpRequest ();
-	var data = JSON.stringify({"username": username});
-	xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/Find", false);
+
+	var data = JSON.stringify({"score": currentScore});
+	xmlHttp.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200){
+				document.getElementById("current").innerHTML =  xmlHttp.responseText +'st'
+		}
+	}
+	xmlHttp.open ( "POST", "http://130.211.186.1/CurrentUsers/GetPosition", true);
 	xmlHttp.setRequestHeader('Content-Type', 'application/json');
 	xmlHttp.send(data);
-	return xmlHttp.responseText;
  }	
+	
 
 
   function loadXMLDoc_PUSHTOHIGHSCOREDATABASE(username, score){
 	var data = JSON.stringify({"username": username, "score": score});
-        var xmlHttp = new XMLHttpRequest ();
-        xmlHttp.open ( "POST", "http://130.211.186.1/HighScores/Add", false);
-        xmlHttp.setRequestHeader('Content-Type', 'application/json');
-        xmlHttp.send(data);
-        return xmlHttp.responseText;
+        var xmlhttp = new XMLHttpRequest ();
+        
+	xmlhttp.open ( "POST", "http://130.211.186.1/HighScores/Add", false);
+        xmlhttp.setRequestHeader('content-type', 'application/json');
+        xmlhttp.send(data);
+        return xmlhttp.responsetext;
    }
 
+
+
+  function loadxmldoc_PUSHTOCURRENTUSERS(username, score){
+
+        var data = JSON.stringify({"username": username, "score": score});
+        var xmlHttp = new XMLHttpRequest ();
+	xmlHttp.open ( "POST", "http://130.211.186.1/CurrentUsers/Add", true);
+        xmlHttp.setRequestHeader('content-type', 'application/json');
+        xmlHttp.send(data);
+        return xmlHttp.responsetext;
+   }
+
+
+  function loadxmldoc_DELETECURRENTUSER(username){
+
+        var data = JSON.stringify({"username": username});
+        var xmlHttp = new XMLHttpRequest ();
+	xmlHttp.open ( "POST", "http://130.211.186.1/CurrentUsers/Delete", true);
+        xmlHttp.setRequestHeader('content-type', 'application/json');
+        xmlHttp.send(data);
+        return xmlHttp.responsetext;
+   }
+
+
+
+
+
+
   setInterval (function () {loadXMLDoc_GETHIGHSCOREPOSITION (score);}, 1000);
+  setInterval (function () {loadXMLDoc_GETCURRENTSCOREPOSITION (score);}, 1000);
+
+  // Gets the initial Data for the HighScore Table.
   loadXMLDoc_GETHIGHSCORE();
+  
+
+  // Updates the HighScore and Current Users tables;
+  setInterval (loadXMLDoc_GETCURRENTSCORE, 1000);
   setInterval(loadXMLDoc_GETHIGHSCORE, 5000);
+  
+  // Pushes the users current score every second.
+  setInterval (function () {loadxmldoc_PUSHTOCURRENTUSERS(username, score);}, 1000);
 
 </script>
 
