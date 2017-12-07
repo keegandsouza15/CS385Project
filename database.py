@@ -4,6 +4,7 @@ Rest API that provides calls to the database.
 
 import json 
 from flask import Flask, Response, request
+from flask_cors import CORS
 from cassandra.cluster import Cluster
 
 
@@ -11,7 +12,9 @@ cluster = Cluster()
 session = cluster.connect('highscoredata')
 
 
+
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/test")
 def test():
@@ -19,16 +22,20 @@ def test():
 
 @app.route('/CurrentUsers/Get', methods = ['GET'])
 def getCurrentUsers ():
-	r = ''
+	json = '{"data": ['
 	rows = session.execute('select * from currentUsers;')
 	for row in rows:
-		r += str(row)
-	return r
+		json += '{ "username" : "' + row.currentusers_username + '" , "score" : ' + str(row.currentusers_score) + '},'
+	json = json[:-1] 
+	json += ']}'
+
+	return json
+
 @app.route('/CurrentUsers/Add', methods = ['POST'])
 def addCurrentUser ():
 	username = request.json['username']
 	score = request.json['score']
-	session.execute('INSERT INTO currentUsers (currentusers_username, currentusers_score) VALUES (%s, %s)', (username, score))
+	session.execute('INSERT INTO currentUsers (currentusers_username, currentusers_score) VALUES (%s, %s) USING TTL 10', (username, score))
 	return str(request.json)
 
 @app.route('/CurrentUsers/Delete', methods = ['POST'])
@@ -51,28 +58,46 @@ def getCurrentPosition ():
 	rows = session.execute('SELECT * FROM currentUsers WHERE currentusers_score >= %s ALLOW FILTERING', (score,))
 	for row in rows:
 		count += 1
-	return str(count)
+	return str(count + 1)
 
 @app.route('/HighScores/Get', methods = ['GET'])
 def getHighScoreUsers ():
-	r = ''
+	json = '{"data": ['
 	rows = session.execute('select * from highScores;')
 	for row in rows:
-		r += str(row)
-	return r
+		json += '{ "username" : "' + row.highscores_username + '" , "score" : ' + str(row.highscores_score) + '},'
+	json = json[:-1] 
+	json += ']}'
+
+	return json
 @app.route('/HighScores/Add', methods = ['POST'])
 def addHighScoreUser ():
 	username = request.json['username']
 	score = request.json['score']
-	session.execute('INSERT INTO highScores (highScores_username, highScores_score) VALUES (%s, %s)', (username, score))
-	return str(request.json)
 
-@app.route('/HighScores/Update', methods = ['POST'])
-def updateHighScoreUser ():
-	username = request.json['username']
-	score = request.json['score']
-	session.execute('UPDATE highScores SET highScores_score=%s WHERE highScores_username=%s', (score, username))
-	return str(request.json)
+	rows = session.execute('SELECT * FROM highScores WHERE highscores_username=%s', (username,))
+	for users in rows:
+		if (users !=None and users.highscores_score < score):	
+			insertIntoHighScore(username, score)
+			return 'hello'
+		else: 
+			return 'Not Added'
+
+	insertIntoHighScore(username, score)
+	return 'hello'
+
+def insertIntoHighScore(username,score):
+	session.execute('INSERT INTO highScores (highScores_username, highScores_score) VALUES (%s, %s)', (username, score))
+
+
+@app.route('/HighScores/Find', methods = ['POST'])
+def findHighScoreUser ():
+	try:
+		username = request.json['username']
+		rows = session.execute('SELECT * FROM highScores WHERE highscores_username=%s', (username,))
+	except:
+		return "Not Found"
+	return "Found"
 
 @app.route('/HighScores/GetPosition', methods =['POST'])
 def getHighScorePosition ():
@@ -81,4 +106,9 @@ def getHighScorePosition ():
 	rows = session.execute('SELECT * FROM highScores WHERE highScores_score >= %s ALLOW FILTERING', (score,))
 	for row in rows:
 		count += 1
-	return str(count)
+	return str(count + 1)
+
+@app.errorhandler(ValueError)
+def exceptionHandler (error):
+	return "Do not exists"
+
